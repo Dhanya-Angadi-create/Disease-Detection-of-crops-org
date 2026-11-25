@@ -1,0 +1,108 @@
+-- AgroCare AI Relational Database Schema (PostgreSQL / MySQL reference)
+-- Live runtime uses SQLite (agrocare.db) initialized automatically in backend/db.ts
+
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  role VARCHAR(20) NOT NULL DEFAULT 'farmer',
+  language_pref VARCHAR(10) NOT NULL DEFAULT 'en',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS farmer_profiles (
+  user_id INTEGER PRIMARY KEY,
+  phone VARCHAR(40) DEFAULT '',
+  village_district VARCHAR(120) DEFAULT '',
+  state VARCHAR(120) DEFAULT '',
+  farm_size_acres REAL DEFAULT 0,
+  primary_crops TEXT DEFAULT '',
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS crops (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  scientific_name VARCHAR(150) NOT NULL,
+  season VARCHAR(120) NOT NULL,
+  climate_zone VARCHAR(150) NOT NULL,
+  description TEXT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS diseases (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  crop_id INTEGER NOT NULL,
+  crop_name VARCHAR(100) NOT NULL,
+  name VARCHAR(160) NOT NULL,
+  pathogen VARCHAR(160) NOT NULL,
+  category VARCHAR(30) NOT NULL,
+  severity_typical VARCHAR(60) NOT NULL,
+  image_url TEXT NOT NULL,
+  symptoms TEXT NOT NULL,
+  causes TEXT NOT NULL,
+  prevention TEXT NOT NULL,
+  organic_treatment TEXT NOT NULL,
+  chemical_treatment TEXT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (crop_id) REFERENCES crops(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS detections (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  image_data TEXT NOT NULL,
+  crop_detected VARCHAR(100) NOT NULL,
+  disease_detected VARCHAR(160) NOT NULL,
+  is_healthy INTEGER NOT NULL DEFAULT 0,
+  confidence REAL NOT NULL,
+  severity VARCHAR(40) NOT NULL,
+  alternatives_json TEXT NOT NULL,
+  description TEXT NOT NULL,
+  symptoms_json TEXT NOT NULL,
+  causes_json TEXT NOT NULL,
+  prevention_json TEXT NOT NULL,
+  organic_json TEXT NOT NULL,
+  chemical_json TEXT NOT NULL,
+  quality_warning TEXT DEFAULT '',
+  model_used VARCHAR(80) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS saved_reports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  detection_id INTEGER NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  notes TEXT DEFAULT '',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (detection_id) REFERENCES detections(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS feedback (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  subject VARCHAR(200) NOT NULL,
+  message TEXT NOT NULL,
+  rating INTEGER DEFAULT 5,
+  status VARCHAR(20) NOT NULL DEFAULT 'new',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  title VARCHAR(200) NOT NULL,
+  message TEXT NOT NULL,
+  type VARCHAR(20) NOT NULL DEFAULT 'info',
+  is_read INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

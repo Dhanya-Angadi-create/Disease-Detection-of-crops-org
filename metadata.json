@@ -1,0 +1,6 @@
+{
+  "name": "AgroCare AI – Smart Crop Disease Detection System",
+  "description": "AI-powered crop leaf disease detection, agronomic diagnostics, multilingual farmer dashboard, and verified crop disease library.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
